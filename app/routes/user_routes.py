@@ -4,7 +4,7 @@ from app.services.user_service import authenticate_user
 
 router = APIRouter()
 
-@router.post("/login")
+@router.post("/login", operation_id="login")
 def login(user: UserLogin):
     authenticated_user = authenticate_user(user.username, user.password)
     if authenticated_user:
