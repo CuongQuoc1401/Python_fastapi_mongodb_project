@@ -33,7 +33,7 @@
             "request": "launch",
             "module": "uvicorn",
             "args": [
-                "app.main:app", // Thay "main:app" bằng tên tệp và biến FastAPI của bạn
+                "main:app", // Thay "main:app" bằng tên tệp và biến FastAPI của bạn
                 "--reload",
                 "--host",
                 "0.0.0.0",
