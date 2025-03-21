@@ -13,11 +13,12 @@ app = FastAPI(
     version="0.1.0",
 )
 
-origins = [
-    "http://localhost:3000",  # Thay đổi cổng nếu trang web của bạn chạy trên cổng khác
-    "http://127.0.0.1:3000",  # Thêm nếu bạn sử dụng 127.0.0.1
-    "http://127.0.0.1:5500",  
-]
+# origins = [
+#     "http://localhost:3000",  # Thay đổi cổng nếu trang web của bạn chạy trên cổng khác
+#     "http://127.0.0.1:3000",  # Thêm nếu bạn sử dụng 127.0.0.1
+#     "http://127.0.0.1:5500",  
+# ]
+origins = ["*"]
 
 app.add_middleware(
     CORSMiddleware,
