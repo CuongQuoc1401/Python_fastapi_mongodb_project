@@ -14,8 +14,5 @@ def best_seller_of_the_day(datetimeObj):
     {"name": 1, "quantity_sold.value": 1, "_id": 0}  # Projection
 ).sort([("quantity_sold.value", -1)]).limit(10))
 
-    # Đóng kết nối MongoDB
-    client.close()
-    
     return results
    
