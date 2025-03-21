@@ -4,9 +4,6 @@ from app.routes import user_routes
 from app.routes import product_routes
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi_utils.api_model import APIModel
-from fastapi_utils.cbv import cbv
-from fastapi_utils.inferring_router import InferringRouter
 
 load_dotenv()
 
@@ -16,6 +13,11 @@ app = FastAPI(
     version="0.1.0",
 )
 
+# origins = [
+#     "http://localhost:3000",  # Thay đổi cổng nếu trang web của bạn chạy trên cổng khác
+#     "http://127.0.0.1:3000",  # Thêm nếu bạn sử dụng 127.0.0.1
+#     "http://127.0.0.1:5500",  
+# ]
 origins = ["*"]
 
 app.add_middleware(
@@ -26,15 +28,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-router = InferringRouter()  # Tạo InferringRouter
-
-@cbv(router)
-class MyAwesomeAPI:
-    @router.get("/")
-    def read_root(self):
-        return {"message": "Hello, World!"}
-
-app.include_router(router)  # Include InferringRouter
-
 app.include_router(user_routes.router)
 app.include_router(product_routes.router)
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, World!"}
+
