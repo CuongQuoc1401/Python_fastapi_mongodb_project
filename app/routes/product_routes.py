@@ -1,9 +1,9 @@
 from datetime import datetime
-from fastapi import APIRouter, FastAPI, HTTPException
+from fastapi import APIRouter, HTTPException
 from app.schemas.product_schema import Product
 from app.services.product_service import best_seller_of_the_day
 
-router = FastAPI()
+router = APIRouter()
 
 @router.get("/best_sellers/{date_str}")
 def get_best_sellers(date_str: str):
