@@ -95,6 +95,20 @@ def loc_du_lieu_trung_lap(collection):
 
     print("Lọc dữ liệu trùng lặp cho ngày hôm nay hoàn tất.")
     
+def xoa_du_lieu_theo_ngay(collection):
+    """Xóa các bản ghi trong MongoDB theo ngày created_at."""
+
+    ngay_xoa = datetime.now().date()
+    ngay_bat_dau = datetime.combine(ngay_xoa, datetime.min.time())
+    ngay_ket_thuc = datetime.combine(ngay_xoa, datetime.max.time())
+
+    ket_qua = collection.delete_many({
+        "created_at": {
+            "$gte": ngay_bat_dau,
+            "$lte": ngay_ket_thuc
+        }
+    })
+    
 collection = products_collection
 
 # Thông tin API Tiki (CẦN CẬP NHẬT)
@@ -120,5 +134,6 @@ headers = {
 }
 
 # Gọi hàm để lưu dữ liệu Tiki phân trang
+xoa_du_lieu_theo_ngay(collection)
 luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection)
 loc_du_lieu_trung_lap(collection)

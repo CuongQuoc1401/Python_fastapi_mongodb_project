@@ -12,38 +12,38 @@
 //     ]
 // }
 
-// {
-//     "version": "0.2.0",
-//     "configurations": [
-//         {
-//             "name": "Python: Current File",
-//             "type": "debugpy",
-//             "request": "launch",
-//             "module": "app.tool_create_data_tiki",
-//             "console": "integratedTerminal",
-//             "justMyCode": true
-//         }
-//     ]
-// }
-
 {
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python: FastAPI",
+            "name": "Python: Current File",
             "type": "debugpy",
             "request": "launch",
-            "module": "uvicorn",
-            "args": [
-                "main:app", // Thay "main:app" bằng tên tệp và biến FastAPI của bạn
-                "--reload",
-                "--host",
-                "0.0.0.0",
-                "--port",
-                "8000"
-            ],
-            "jinja": true,
-            "justMyCode": false
+            "module": "app.tool_create_data_tiki",
+            "console": "integratedTerminal",
+            "justMyCode": true
         }
     ]
 }
+
+// {
+//     "version": "0.2.0",
+//     "configurations": [
+//         {
+//             "name": "Python: FastAPI",
+//             "type": "debugpy",
+//             "request": "launch",
+//             "module": "uvicorn",
+//             "args": [
+//                 "main:app", // Thay "main:app" bằng tên tệp và biến FastAPI của bạn
+//                 "--reload",
+//                 "--host",
+//                 "0.0.0.0",
+//                 "--port",
+//                 "8000"
+//             ],
+//             "jinja": true,
+//             "justMyCode": false
+//         }
+//     ]
+// }
