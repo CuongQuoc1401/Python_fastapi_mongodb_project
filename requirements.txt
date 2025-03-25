@@ -5,3 +5,8 @@ python-dotenv
 pydantic
 sympy
 fastapi-utils
+python-jose[cryptography]
+passlib
+PyJWT
+sympy
+requests

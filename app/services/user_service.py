@@ -10,3 +10,9 @@ def authenticate_user(username, password):
         return user
     print("Authentication failed")
     return None
+
+def authenticate_username(username):
+    user = users_collection.find_one({"username": username})
+    if user:
+        return user
+    return None

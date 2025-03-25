@@ -1,8 +1,10 @@
 import time
 import requests
 import pymongo
-from datetime import datetime
+from datetime import datetime, timedelta
 from app.models.user_model import products_collection
+import json
+# import datetime
 
 def luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection):
     """Lấy dữ liệu từ API Tiki phân trang và lưu vào MongoDB."""
@@ -62,6 +64,37 @@ def luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection):
             print(f"Lỗi không xác định: {e}")
             break  # Dừng vòng lặp nếu có lỗi không xác định
 
+def loc_du_lieu_trung_lap(collection):
+    """Lọc dữ liệu trùng lặp trong bảng MongoDB."""
+
+    # ngay_hom_nay = datetime(2025, 3,21)
+    ngay_hom_nay = datetime.now().date()
+    ngay_bat_dau = datetime.combine(ngay_hom_nay, datetime.min.time())
+    ngay_ket_thuc = datetime.combine(ngay_hom_nay, datetime.max.time())
+
+    cac_ban_ghi_hom_nay = collection.find({
+        "created_at": {"$gte": ngay_bat_dau, "$lte": ngay_ket_thuc}
+    })
+
+    cac_ban_ghi_duy_nhat = {}
+
+    for ban_ghi in cac_ban_ghi_hom_nay:
+        # Kiểm tra xem các trường có phải là dictionary không và chuyển đổi chúng thành chuỗi nếu cần
+        name = json.dumps(ban_ghi["name"]) if isinstance(ban_ghi["name"], dict) else ban_ghi["name"]
+        # price = json.dumps(ban_ghi["price"]) if isinstance(ban_ghi["price"], dict) else ban_ghi["price"]
+        # quantity_sold = json.dumps(ban_ghi["quantity_sold"]) if isinstance(ban_ghi["quantity_sold"], dict) else ban_ghi["quantity_sold"]
+        url_key = json.dumps(ban_ghi["url_key"]) if isinstance(ban_ghi["url_key"], dict) else ban_ghi["url_key"]
+
+        khoa = (name, url_key)
+
+        if khoa not in cac_ban_ghi_duy_nhat:
+            cac_ban_ghi_duy_nhat[khoa] = ban_ghi
+        else:
+            collection.delete_one({"_id": ban_ghi["_id"]})
+            print(f"Đã xóa bản ghi trùng lặp: {ban_ghi['_id']}")
+
+    print("Lọc dữ liệu trùng lặp cho ngày hôm nay hoàn tất.")
+    
 collection = products_collection
 
 # Thông tin API Tiki (CẦN CẬP NHẬT)
@@ -88,3 +121,4 @@ headers = {
 
 # Gọi hàm để lưu dữ liệu Tiki phân trang
 luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection)
+loc_du_lieu_trung_lap(collection)
