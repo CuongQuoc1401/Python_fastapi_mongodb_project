@@ -1,7 +1,7 @@
 from datetime import datetime
 from fastapi import FastAPI
-from app.routes import user_routes
-from app.routes import product_routes
+from app.routes import user_routes, product_routes
+from app.routes import crawl_data_products_routes
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -32,6 +32,7 @@ app.add_middleware(
 
 app.include_router(user_routes.router)
 app.include_router(product_routes.router)
+app.include_router(crawl_data_products_routes.router)
 
 @app.get("/read_root")
 def read_root():
