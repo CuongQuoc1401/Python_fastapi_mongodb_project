@@ -4,7 +4,7 @@ from app.services.crawl_data_products_service import crawl_data_product_from_tik
 router = APIRouter()
 
 @router.get("/crawl/data_product_from_tiki")
-async def crawl_data_product_from_tiki():
+async def crawl_data_product_from_tiki(api_url, headers, collection):
     try:
         date_products = crawl_data_product_from_tiki(api_url, headers, collection)
         if not date_products:
