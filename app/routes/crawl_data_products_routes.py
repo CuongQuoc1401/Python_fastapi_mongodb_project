@@ -1,12 +1,12 @@
 from fastapi import APIRouter, HTTPException
-from app.services.crawl_data_products_service import crawl_data_product_from_tiki, api_url, headers, collection
+from app.services.crawl_data_products_service import crawl_data_product_from_tiki
 
 router = APIRouter()
 
 @router.get("/crawl/data_product_from_tiki")
-async def crawl_data_product_from_tiki(api_url, headers, collection):
+async def get_crawl_data_product_from_tiki():
     try:
-        date_products = crawl_data_product_from_tiki(api_url, headers, collection)
+        date_products = crawl_data_product_from_tiki()
         if not date_products:
             raise HTTPException(status_code=400, detail="No data found for the given date.")
         return date_products

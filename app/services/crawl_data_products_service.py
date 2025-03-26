@@ -51,7 +51,7 @@ def luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection):
                     }
                     collection.insert_one(product_data)
                 print(f"Đã lưu dữ liệu trang {page}.")
-                time.sleep(1)
+                time.sleep(0.5)
                 page += 1
             else:
                 print("Không còn dữ liệu hoặc lỗi API.")
@@ -109,36 +109,60 @@ def xoa_du_lieu_theo_ngay(collection):
         }
     })
     
-collection = products_collection
+# collection = products_collection
 
-# Thông tin API Tiki (CẦN CẬP NHẬT)
-api_url = "https://tiki.vn/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung"
-headers = {
-    "authority": "tiki.vn",
-    "method": "GET",
-    "path": "/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung",
-    "scheme": "https",
-    "Accept": "application/json, text/plain, */*",
-    "Accept-Encoding": "gzip, deflate, br, zstd",
-    "Accept-Language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
-    "Cookie": "_trackity=fcc6affa-3f44-8396-fcd9-1f635bd03925; tiki_client_id=gd_au=1.1.728590450.1742535524",
-    "Referer": "https://tiki.vn/search?q=samsung",
-    "Sec-Ch-Ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
-    "Sec-Ch-Ua-Mobile": "?0",
-    "Sec-Ch-Ua-Platform": '"Windows"',
-    "Sec-Fetch-Dest": "empty",
-    "Sec-Fetch-Mode": "cors",
-    "Sec-Fetch-Site": "same-origin",
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
-    "X-Guest-Token": "InWjvpfZmChXUzr7PARVSQFaJcLbG9Eu"
-}
+# # Thông tin API Tiki (CẦN CẬP NHẬT)
+# api_url = "https://tiki.vn/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung"
+# headers = {
+#     "authority": "tiki.vn",
+#     "method": "GET",
+#     "path": "/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung",
+#     "scheme": "https",
+#     "Accept": "application/json, text/plain, */*",
+#     "Accept-Encoding": "gzip, deflate, br, zstd",
+#     "Accept-Language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+#     "Cookie": "_trackity=fcc6affa-3f44-8396-fcd9-1f635bd03925; tiki_client_id=gd_au=1.1.728590450.1742535524",
+#     "Referer": "https://tiki.vn/search?q=samsung",
+#     "Sec-Ch-Ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+#     "Sec-Ch-Ua-Mobile": "?0",
+#     "Sec-Ch-Ua-Platform": '"Windows"',
+#     "Sec-Fetch-Dest": "empty",
+#     "Sec-Fetch-Mode": "cors",
+#     "Sec-Fetch-Site": "same-origin",
+#     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+#     "X-Guest-Token": "InWjvpfZmChXUzr7PARVSQFaJcLbG9Eu"
+# }
 
 # Gọi hàm để lưu dữ liệu Tiki phân trang
 # xoa_du_lieu_theo_ngay(collection)
 # luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection)
 # loc_du_lieu_trung_lap(collection)
 
-def crawl_data_product_from_tiki(api_url, headers, collection):
+def crawl_data_product_from_tiki():
+    collection = products_collection
+    # Thông tin API Tiki (CẦN CẬP NHẬT)
+    api_url = "https://tiki.vn/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung"
+    headers = {
+        "authority": "tiki.vn",
+        "method": "GET",
+        "path": "/api/v2/products?limit=40&include=advertisement&aggregations=2&trackity_id=fcc6affa-3f44-8396-fcd9-1f635bd03925&q=samsung",
+        "scheme": "https",
+        "Accept": "application/json, text/plain, */*",
+        "Accept-Encoding": "gzip, deflate, br, zstd",
+        "Accept-Language": "vi-VN,vi;q=0.9,fr-FR;q=0.8,fr;q=0.7,en-US;q=0.6,en;q=0.5",
+        "Cookie": "_trackity=fcc6affa-3f44-8396-fcd9-1f635bd03925; tiki_client_id=gd_au=1.1.728590450.1742535524",
+        "Referer": "https://tiki.vn/search?q=samsung",
+        "Sec-Ch-Ua": '"Not(A:Brand";v="99", "Google Chrome";v="133", "Chromium";v="133"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36",
+        "X-Guest-Token": "InWjvpfZmChXUzr7PARVSQFaJcLbG9Eu"
+    }
+    
     xoa_du_lieu_theo_ngay(collection)
     luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection)
     loc_du_lieu_trung_lap(collection)
+    return("Success")
