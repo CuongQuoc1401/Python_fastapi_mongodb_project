@@ -3,7 +3,8 @@ from app.schemas.user_schema import UserLogin
 from app.services.user_service import authenticate_user
 from app.services.token_service import create_access_token
 
-router = APIRouter()
+# router = APIRouter()
+router = APIRouter(prefix="/api") # Định nghĩa prefix cho router
 
 @router.post("/login", operation_id="login")
 async def login_for_access_token(user: UserLogin):
