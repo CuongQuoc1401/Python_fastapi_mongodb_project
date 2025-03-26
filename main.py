@@ -19,7 +19,8 @@ app = FastAPI(
 #     "http://127.0.0.1:5500",  
 # ]
 # origins = ["*"]
-origins = ["http://localhost:3000", "https://abc-domain.com"]
+# origins = ["http://localhost:3000", "https://abc-domain.com"]
+origins=["http://fe-statistic-app-debug-git-master-cuongquoc1401-projects.vercel.app"]
 
 app.add_middleware(
     CORSMiddleware,
