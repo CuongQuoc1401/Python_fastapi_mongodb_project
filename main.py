@@ -33,7 +33,7 @@ app.add_middleware(
 app.include_router(user_routes.router)
 app.include_router(product_routes.router)
 
-@app.get("/")
+@app.get("/read_root")
 def read_root():
     return {"message": "Hello, World!"}
 
