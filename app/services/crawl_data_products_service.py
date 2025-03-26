@@ -51,7 +51,7 @@ def luu_du_lieu_san_pham_tiki_phan_trang(api_url, headers, collection):
                     }
                     collection.insert_one(product_data)
                 print(f"Đã lưu dữ liệu trang {page}.")
-                time.sleep(2)
+                time.sleep(1)
                 page += 1
             else:
                 print("Không còn dữ liệu hoặc lỗi API.")
