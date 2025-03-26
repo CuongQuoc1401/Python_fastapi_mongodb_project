@@ -9,7 +9,7 @@ from app.services.user_service import authenticate_user, authenticate_username
 # Cấu hình JWT
 SECRET_KEY = "cuong_quoc_1401"  # Thay YOUR_SECRET_KEY bằng khóa bí mật của bạn
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 60
+ACCESS_TOKEN_EXPIRE_MINUTES = 180
 
 # Cấu hình Passlib
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
