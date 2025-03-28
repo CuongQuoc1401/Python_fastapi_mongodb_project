@@ -4,6 +4,7 @@ from app.routes import user_routes, product_routes
 from app.routes import crawl_data_products_routes
 from dotenv import load_dotenv
 from fastapi.middleware.cors import CORSMiddleware
+from app.schedules.scheduler import start_scheduler, stop_scheduler
 
 load_dotenv()
 
@@ -33,6 +34,15 @@ app.add_middleware(
 app.include_router(user_routes.router)
 app.include_router(product_routes.router)
 app.include_router(crawl_data_products_routes.router)
+
+##job
+@app.on_event("startup")
+async def startup_event():
+    start_scheduler()
+
+@app.on_event("shutdown")
+def shutdown_event():
+    stop_scheduler()
 
 @app.get("/read_root")
 def read_root():
