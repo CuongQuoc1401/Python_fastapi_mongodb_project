@@ -4,6 +4,8 @@ from app.schemas.product_schema import Product
 from app.services.product_service import best_seller_of_shop
 from app.services.token_service import get_current_user
 from app.jobs.product_comparison_job import compare_daily_product_data
+from motor.motor_asyncio import AsyncIOMotorClient
+from app.utils.database import get_database
 
 router = APIRouter()
 
@@ -11,7 +13,7 @@ router = APIRouter()
 async def get_best_sellers(date_str: str, username: str = Depends(get_current_user)):
     try:
         date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        best_sellers = best_seller_of_shop(date_obj)
+        best_sellers = await best_seller_of_shop(date_obj)
         if not best_sellers:
             raise HTTPException(status_code=400, detail="No data found for the given date.")
         return best_sellers
