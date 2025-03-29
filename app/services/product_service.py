@@ -3,7 +3,7 @@ from xmlrpc import client
 from app.models.user_model import products_collection
 from app.utils.database import client
 
-def best_seller_of_the_day(datetimeObj):
+def best_seller_of_shop(datetimeObj):
     if datetimeObj < datetime.datetime(2025, 3, 21) or datetimeObj >= datetime.datetime.now():
         return "Data Not Found"
     
