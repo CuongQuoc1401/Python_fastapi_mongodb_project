@@ -11,3 +11,5 @@ PyJWT
 sympy
 requests
 apscheduler
+motor
+httpx

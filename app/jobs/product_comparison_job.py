@@ -11,7 +11,9 @@ async def compare_daily_product_data():
     start_today = datetime(today.year, today.month, today.day, 0, 0, 0)
     end_today = datetime(today.year, today.month, today.day, 23, 59, 59, 999999)
 
+    print(f"Senior Dev Log (before find): Type of products_collection: {type(products_collection)}")
     yesterday_products = await products_collection.find({"created_at": {"$gte": start_yesterday, "$lte": end_yesterday}}).to_list(length=None)
+    print(f"Senior Dev Log (after to_list): Type of yesterday_products: {type(yesterday_products)}")
     today_products = await products_collection.find({"created_at": {"$gte": start_today, "$lte": end_today}}).to_list(length=None)
 
     # Cần một cách hiệu quả để so sánh (ví dụ: index trên 'id')
@@ -87,4 +89,4 @@ async def compare_daily_product_data():
                 "ecommerce_name": today_product.get("ecommerce_name")
             })
 
-    print(f"Senior Dev Log: Hoàn thành so sánh dữ liệu sản phẩm ngày {today}.")
+    return await print(f"Senior Dev Log: Hoàn thành so sánh dữ liệu sản phẩm ngày {today}.")

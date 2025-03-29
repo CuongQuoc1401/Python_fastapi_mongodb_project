@@ -4,7 +4,10 @@ from fastapi import HTTPException, Depends
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from app.schemas.user_schema import UserLogin
-from app.services.user_service import authenticate_user, authenticate_username
+from app.services.user_service import get_user_by_username  # Đổi tên cho rõ ràng
+from motor.motor_asyncio import AsyncIOMotorClient
+from app.utils.database import get_database
+# from app.core.config import settings  # Giả sử bạn có file config
 
 # Cấu hình JWT
 SECRET_KEY = "cuong_quoc_1401"  # Thay YOUR_SECRET_KEY bằng khóa bí mật của bạn
@@ -19,15 +22,12 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 def create_access_token(data: dict, expires_delta: timedelta = None):
     to_encode = data.copy()
-    if expires_delta is None:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    else:
-        expire = datetime.utcnow() + expires_delta
+    expire = datetime.utcnow() + (expires_delta if expires_delta else timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES))
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme)):
+async def get_current_user(db: AsyncIOMotorClient = Depends(get_database), token: str = Depends(oauth2_scheme)):
     credentials_exception = HTTPException(
         status_code=401,
         detail="Could not validate credentials",
@@ -40,8 +40,15 @@ async def get_current_user(token: str = Depends(oauth2_scheme)):
             raise credentials_exception
     except jwt.PyJWTError:
         raise credentials_exception
-    # user = authenticate_user(username, "")  # Thay "" bằng mật khẩu (nếu cần)
-    user = authenticate_username(username)  # Thay "" bằng mật khẩu (nếu cần)
+    user = await get_user_by_username(db, username)
     if user is None:
         raise credentials_exception
+    return user
+
+async def authenticate_user(db: AsyncIOMotorClient = Depends(get_database), form_data: UserLogin = Depends()):
+    user = await get_user_by_username(db, form_data.username)
+    if not user:
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
+    if not pwd_context.verify(form_data.password, user["password"]):
+        raise HTTPException(status_code=400, detail="Incorrect username or password")
     return user

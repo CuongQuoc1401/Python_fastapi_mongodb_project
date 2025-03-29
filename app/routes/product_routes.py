@@ -23,8 +23,7 @@ async def get_best_sellers(date_str: str, username: str = Depends(get_current_us
 @router.get("/best_sellers_yesterday")
 async def get_best_sellers_yesterday(username: str = Depends(get_current_user)):
     try:
-        await compare_daily_product_data()
-        return "success"
+        return await compare_daily_product_data()
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     except Exception as e:
