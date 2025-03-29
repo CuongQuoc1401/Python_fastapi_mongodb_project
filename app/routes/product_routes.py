@@ -10,10 +10,10 @@ from app.utils.database import get_database
 router = APIRouter()
 
 @router.get("/best_sellers/{date_str}")
-async def get_best_sellers(date_str: str, username: str = Depends(get_current_user)):
+async def get_best_sellers(date_str: str, db: AsyncIOMotorClient = Depends(get_database) ,username: str = Depends(get_current_user)):
     try:
         date_obj = datetime.strptime(date_str, "%Y-%m-%d")
-        best_sellers = await best_seller_of_shop(date_obj)
+        best_sellers = await best_seller_of_shop(date_obj, db)
         if not best_sellers:
             raise HTTPException(status_code=400, detail="No data found for the given date.")
         return best_sellers
@@ -23,9 +23,9 @@ async def get_best_sellers(date_str: str, username: str = Depends(get_current_us
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/best_sellers_yesterday")
-async def get_best_sellers_yesterday(username: str = Depends(get_current_user)):
+async def get_best_sellers_yesterday(db: AsyncIOMotorClient = Depends(get_database), username: str = Depends(get_current_user)):
     try:
-        return await compare_daily_product_data()
+        return await compare_daily_product_data(db)
     except ValueError:
         raise HTTPException(status_code=400, detail="Invalid date format. Use YYYY-MM-DD.")
     except Exception as e:
