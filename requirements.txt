@@ -13,3 +13,5 @@ requests
 apscheduler
 motor
 httpx
+bcrypt
+pydantic[email]

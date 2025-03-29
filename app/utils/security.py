@@ -1,4 +1,9 @@
-# Trong ứng dụng thực tế, bạn nên sử dụng thư viện hashing (ví dụ: bcrypt)
-# để mã hóa mật khẩu thay vì lưu trữ mật khẩu thuần túy.
-def verify_password(stored_password, provided_password):
-    return stored_password == provided_password
+# app/utils/security.py
+import bcrypt
+
+def hash_password(password: str) -> str:
+    hashed_bytes = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+    return hashed_bytes.decode('utf-8')
+
+def verify_password(provided_password: str, stored_password: str) -> bool:
+    return bcrypt.checkpw(provided_password.encode('utf-8'), stored_password.encode('utf-8'))
