@@ -1,7 +1,7 @@
 import time
 from typing import Optional
 import httpx  # Sử dụng httpx cho các request bất đồng bộ
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone, time
 from fastapi import Depends
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.utils.database import get_database
@@ -9,7 +9,7 @@ import json
 import asyncio
 
 async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: AsyncIOMotorClient):
-    """Lấy dữ liệu từ API Tiki phân trang và lưu vào MongoDB (bất đồng bộ)."""
+    """Lấy dữ liệu từ API Tiki phân trang và lưu vào MongoDB (bất đồng bộ) bằng insert_many()."""
     collection = db["products"]
     page = 1  # Trang bắt đầu
     async with httpx.AsyncClient() as client:
@@ -22,7 +22,7 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
 
                 if "data" in data and len(data["data"]) > 0:
                     products = data["data"]
-                    bulk_operations = []
+                    products_to_insert = []
                     for product in products:
                         badges_text = [badge.get("text") for badge in product.get("badges_new", []) if badge.get("text")]
                         quantity_sold_data = product.get("quantity_sold")
@@ -31,52 +31,50 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
                         if isinstance(quantity_sold_data, dict):
                             quantity_sold_value = quantity_sold_data.get("value")
 
-                        product_data = {
-                            "id": product.get("id"),
-                            "sku": product.get("sku"),
-                            "name": product.get("name"),
-                            "url_key": product.get("url_key"),
-                            "url_path": product.get("url_path"),
-                            "availability": product.get("availability"),
-                            "seller_id": product.get("seller_id"),
-                            "seller_name": product.get("seller_name"),
-                            "brand_id": product.get("brand_id"),
-                            "brand_name": product.get("brand_name"),
-                            "price": product.get("price"),
-                            "original_price": product.get("original_price"),
-                            "badges_new": badges_text,
-                            "discount": product.get("discount"),
-                            "discount_rate": product.get("discount_rate"),
-                            "rating_average": product.get("rating_average"),
-                            "review_count": product.get("review_count"),
-                            "category_ids": product.get("category_ids"),
-                            "primary_category_path": product.get("primary_category_path"),
-                            "primary_category_name": product.get("primary_category_name"),
-                            "thumbnail_url": product.get("thumbnail_url"),
-                            "quantity_sold": quantity_sold_value,  # Lưu trữ trực tiếp giá trị
-                            "video_url": product.get("video_url"),
-                            "origin": product.get("origin"),
-                            "created_at": datetime.now().isoformat() + "Z",
-                            "updated_at": datetime.now().isoformat() + "Z",
-                            "ecommerce_name": "Tiki",
-                        }
-                        bulk_operations.append({"insert_one": {"document": product_data}})
-                    if bulk_operations:
                         try:
-                            if bulk_operations:
-                                result = await collection.bulk_write(bulk_operations)
-                                print(f"Đã chèn {result.inserted_count} bản ghi.")
-                                if result.write_errors:
-                                    print("Lỗi ghi hàng loạt:")
-                                    for error in result.write_errors:
-                                        print(error)
-                            else:
-                                print("Không có bulk_operations để thực hiện.")
+                            product_data = {
+                                "id": product.get("id"),
+                                "sku": product.get("sku"),
+                                "name": product.get("name"),
+                                "url_key": product.get("url_key"),
+                                "url_path": product.get("url_path"),
+                                "availability": product.get("availability"),
+                                "seller_id": product.get("seller_id"),
+                                "seller_name": product.get("seller_name"),
+                                "brand_id": product.get("brand_id"),
+                                "brand_name": product.get("brand_name"),
+                                "price": product.get("price"),
+                                "original_price": product.get("original_price"),
+                                "badges_new": badges_text,
+                                "discount": product.get("discount"),
+                                "discount_rate": product.get("discount_rate"),
+                                "rating_average": product.get("rating_average"),
+                                "review_count": product.get("review_count"),
+                                "category_ids": product.get("category_ids"),
+                                "primary_category_path": product.get("primary_category_path"),
+                                "primary_category_name": product.get("primary_category_name"),
+                                "thumbnail_url": product.get("thumbnail_url"),
+                                "quantity_sold": quantity_sold_value,  # Lưu trữ trực tiếp giá trị
+                                "video_url": product.get("video_url"),
+                                "origin": product.get("origin"),
+                                "created_at": datetime.now(timezone.utc),
+                                "updated_at": datetime.now(timezone.utc),
+                                "ecommerce_name": "Tiki",
+                            }
+                            products_to_insert.append(product_data)
                         except Exception as e:
-                            print(f"Lỗi bulk_write: {e}")
-                        print(f"Đã lưu dữ liệu trang {page}.")
-                        await asyncio.sleep(0.5)  # Sử dụng asyncio.sleep cho bất đồng bộ
-                        page += 1
+                            print(f"Lỗi khi tạo product_data cho product ID {product.get('id')}: {e}")
+
+                    if products_to_insert:
+                        try:
+                            result = await collection.insert_many(products_to_insert)
+                            # print(f"Đã chèn {len(result.inserted_ids)} bản ghi với IDs: {result.inserted_ids}")
+                            print(f"Đã lưu dữ liệu trang {page}.")
+                            await asyncio.sleep(0.5)  # Sử dụng asyncio.sleep cho bất đồng bộ
+                            page += 1
+                        except Exception as e:
+                            print(f"Lỗi insert_many cho trang {page}: {e}")
+                            break  # Dừng vòng lặp nếu có lỗi insert_many
                     else:
                         print("Không có sản phẩm nào để lưu ở trang này.")
                         break  # Dừng vòng lặp nếu không có sản phẩm
@@ -99,9 +97,9 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
 async def loc_du_lieu_trung_lap(db: AsyncIOMotorClient):
     """Lọc dữ liệu trùng lặp trong bảng MongoDB (bất đồng bộ)."""
     collection = db["products"]
-    ngay_hom_nay = datetime.now().date()
-    ngay_bat_dau = datetime.combine(ngay_hom_nay, datetime.min.time())
-    ngay_ket_thuc = datetime.combine(ngay_hom_nay, datetime.max.time())
+    ngay_hom_nay = datetime.now(timezone.utc).date()
+    ngay_bat_dau = datetime.combine(ngay_hom_nay, time.min, tzinfo=timezone.utc)
+    ngay_ket_thuc = datetime.combine(ngay_hom_nay, time.max, tzinfo=timezone.utc)
 
     cac_ban_ghi_hom_nay = collection.find({
         "created_at": {"$gte": ngay_bat_dau, "$lte": ngay_ket_thuc}
@@ -124,9 +122,9 @@ async def loc_du_lieu_trung_lap(db: AsyncIOMotorClient):
 async def xoa_du_lieu_theo_ngay(db: AsyncIOMotorClient):
     """Xóa các bản ghi trong MongoDB theo ngày created_at (bất đồng bộ)."""
     collection = db["products"]
-    ngay_xoa = datetime.now().date()
-    ngay_bat_dau = datetime.combine(ngay_xoa, datetime.min.time())
-    ngay_ket_thuc = datetime.combine(ngay_xoa, datetime.max.time())
+    ngay_xoa = datetime.now(timezone.utc).date()
+    ngay_bat_dau = datetime.combine(ngay_xoa, time.min, tzinfo=timezone.utc)
+    ngay_ket_thuc = datetime.combine(ngay_xoa, time.max, tzinfo=timezone.utc)
 
     ket_qua = await collection.delete_many({
         "created_at": {
