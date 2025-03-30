@@ -12,7 +12,7 @@ async def best_seller_of_shop(datetimeObj: datetime.datetime, db: AsyncIOMotorCl
 
     results = await db["products"].find(
         {"created_at": {"$gte": start_of_day, "$lte": end_of_day}},
-        {"name": 1, "quantity_sold.value": 1, "_id": 0}  # Projection
-    ).sort([("quantity_sold.value", -1)]).limit(10).to_list(length=None)
+        {"name": 1, "quantity_sold": 1, "_id": 0}  # Projection để lấy trường quantity_sold
+    ).sort([("quantity_sold", -1)]).limit(10).to_list(length=None)
 
     return results
