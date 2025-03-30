@@ -1,4 +1,5 @@
 import time
+from typing import Optional
 import httpx  # Sử dụng httpx cho các request bất đồng bộ
 from datetime import datetime, timedelta
 from fastapi import Depends
@@ -24,6 +25,12 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
                     bulk_operations = []
                     for product in products:
                         badges_text = [badge.get("text") for badge in product.get("badges_new", []) if badge.get("text")]
+                        quantity_sold_data = product.get("quantity_sold")
+                        quantity_sold_value: Optional[int] = None
+
+                        if isinstance(quantity_sold_data, dict):
+                            quantity_sold_value = quantity_sold_data.get("value")
+
                         product_data = {
                             "id": product.get("id"),
                             "sku": product.get("sku"),
@@ -46,19 +53,33 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
                             "primary_category_path": product.get("primary_category_path"),
                             "primary_category_name": product.get("primary_category_name"),
                             "thumbnail_url": product.get("thumbnail_url"),
-                            "quantity_sold": product.get("quantity_sold"),
+                            "quantity_sold": quantity_sold_value,  # Lưu trữ trực tiếp giá trị
                             "video_url": product.get("video_url"),
                             "origin": product.get("origin"),
-                            "created_at": datetime.now(),
-                            "updated_at": datetime.now(),
+                            "created_at": datetime.now().isoformat() + "Z",
+                            "updated_at": datetime.now().isoformat() + "Z",
                             "ecommerce_name": "Tiki",
                         }
                         bulk_operations.append({"insert_one": {"document": product_data}})
                     if bulk_operations:
-                        await collection.bulk_write(bulk_operations)
-                    print(f"Đã lưu dữ liệu trang {page}.")
-                    await asyncio.sleep(0.5)  # Sử dụng asyncio.sleep cho bất đồng bộ
-                    page += 1
+                        try:
+                            if bulk_operations:
+                                result = await collection.bulk_write(bulk_operations)
+                                print(f"Đã chèn {result.inserted_count} bản ghi.")
+                                if result.write_errors:
+                                    print("Lỗi ghi hàng loạt:")
+                                    for error in result.write_errors:
+                                        print(error)
+                            else:
+                                print("Không có bulk_operations để thực hiện.")
+                        except Exception as e:
+                            print(f"Lỗi bulk_write: {e}")
+                        print(f"Đã lưu dữ liệu trang {page}.")
+                        await asyncio.sleep(0.5)  # Sử dụng asyncio.sleep cho bất đồng bộ
+                        page += 1
+                    else:
+                        print("Không có sản phẩm nào để lưu ở trang này.")
+                        break  # Dừng vòng lặp nếu không có sản phẩm
                 else:
                     print("Không còn dữ liệu hoặc lỗi API.")
                     break  # Dừng vòng lặp nếu không còn dữ liệu hoặc lỗi API
@@ -72,6 +93,8 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
             except Exception as e:
                 print(f"Lỗi không xác định: {e}")
                 break  # Dừng vòng lặp nếu có lỗi không xác định
+
+    print("Hoàn tất quá trình lưu dữ liệu sản phẩm từ Tiki.")
 
 async def loc_du_lieu_trung_lap(db: AsyncIOMotorClient):
     """Lọc dữ liệu trùng lặp trong bảng MongoDB (bất đồng bộ)."""
