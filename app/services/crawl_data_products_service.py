@@ -26,7 +26,7 @@ async def luu_du_lieu_san_pham_tiki_phan_trang(api_url: str, headers: dict, db: 
                     for product in products:
                         badges_text = [badge.get("text") for badge in product.get("badges_new", []) if badge.get("text")]
                         quantity_sold_data = product.get("quantity_sold")
-                        quantity_sold_value: Optional[int] = None
+                        quantity_sold_value: Optional[int] = 0
 
                         if isinstance(quantity_sold_data, dict):
                             quantity_sold_value = quantity_sold_data.get("value")

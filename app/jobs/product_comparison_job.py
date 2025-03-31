@@ -29,13 +29,21 @@ async def compare_daily_product_data(db: AsyncIOMotorClient = Depends(get_databa
     product_yesterday_map = {p.get("id"): p for p in yesterday_products}
     product_today_map = {p.get("id"): p for p in today_products}
 
-    diff_operations = []
+    diffs_to_insert = []
 
+    # Xóa tất cả dữ liệu diff của ngày hiện tại trước khi chèn
+    deleted_result = await products_diff_collection.delete_many({
+        "created_at": {"$gte": start_today, "$lte": end_today}
+    })
+    print(f"Senior Dev Log: Đã xóa {deleted_result.deleted_count} bản ghi diff của ngày {today}.")
+    
     for product_id, today_product in product_today_map.items():
         yesterday_product = product_yesterday_map.get(product_id)
         changes = []
         yesterday_data = {}
         today_data = {}
+        quantity_sold_change = None
+        price_change = None
 
         if yesterday_product:
             yesterday_data["availability"] = yesterday_product.get("availability")
@@ -57,59 +65,62 @@ async def compare_daily_product_data(db: AsyncIOMotorClient = Depends(get_databa
             today_data["quantity_sold"] = today_product.get("quantity_sold")
 
             if yesterday_data.get("availability") != today_data.get("availability"): changes.append("availability")
-            if yesterday_data.get("price") != today_data.get("price"): changes.append("price")
+            if yesterday_data.get("price") != today_data.get("price"):
+                changes.append("price")
+                price_change = (today_data.get("price") or 0) - (yesterday_data.get("price") or 0)
             if yesterday_data.get("original_price") != today_data.get("original_price"): changes.append("original_price")
             if yesterday_data.get("discount") != today_data.get("discount"): changes.append("discount")
             if yesterday_data.get("discount_rate") != today_data.get("discount_rate"): changes.append("discount_rate")
             if yesterday_data.get("rating_average") != today_data.get("rating_average"): changes.append("rating_average")
             if yesterday_data.get("review_count") != today_data.get("review_count"): changes.append("review_count")
-            if yesterday_data.get("quantity_sold") != today_data.get("quantity_sold"): changes.append("quantity_sold")
+            if (yesterday_data.get("quantity_sold") or 0) != (today_data.get("quantity_sold") or 0):
+                changes.append("quantity_sold")
+                quantity_sold_change = (today_data.get("quantity_sold") or 0) - (yesterday_data.get("quantity_sold") or 0)
+            else:
+                quantity_sold_change = 0
 
             if changes:
-                diff_operations.append({
-                    "insert_one": {
-                        "document": {
-                            "product_id": today_product.get("id"),
-                            "sku": today_product.get("sku"),
-                            "name": today_product.get("name"),
-                            "snapshot_date": yesterday,
-                            "data_yesterday": yesterday_data,
-                            "data_today": today_data,
-                            "changes": changes,
-                            "created_at": datetime.now(),
-                            "updated_at": datetime.now(),
-                            "ecommerce_name": today_product.get("ecommerce_name")
-                        }
-                    }
+                diffs_to_insert.append({
+                    "product_id": today_product.get("id"),
+                    "sku": today_product.get("sku"),
+                    "name": today_product.get("name"),
+                    "snapshot_date": datetime.combine(yesterday, datetime.min.time()),  # Convert to datetime
+                    "data_yesterday": yesterday_data,
+                    "data_today": today_data,
+                    "changes": changes,
+                    "quantity_sold_change": quantity_sold_change,  # Thêm trường này
+                    "price_change": price_change,  # Thêm trường theo dõi thay đổi giá
+                    "created_at": datetime.now(),
+                    "updated_at": datetime.now(),
+                    "ecommerce_name": today_product.get("ecommerce_name")
                 })
         else:
             # Sản phẩm mới của ngày hôm nay
-            diff_operations.append({
-                "insert_one": {
-                    "document": {
-                        "product_id": today_product.get("id"),
-                        "sku": today_product.get("sku"),
-                        "name": today_product.get("name"),
-                        "snapshot_date": today,
-                        "data_today": {
-                            "availability": today_product.get("availability"),
-                            "price": today_product.get("price"),
-                            "original_price": today_product.get("original_price"),
-                            "discount": today_product.get("discount"),
-                            "discount_rate": today_product.get("discount_rate"),
-                            "rating_average": today_product.get("rating_average"),
-                            "review_count": today_product.get("review_count"),
-                            "quantity_sold": today_product.get("quantity_sold")
-                        },
-                        "changes": ["new_product"],
-                        "created_at": datetime.now(),
-                        "updated_at": datetime.now(),
-                        "ecommerce_name": today_product.get("ecommerce_name")
-                    }
-                }
+            diffs_to_insert.append({
+                "product_id": today_product.get("id"),
+                "sku": today_product.get("sku"),
+                "name": today_product.get("name"),
+                "snapshot_date": datetime.combine(today, datetime.min.time()),  # Convert to datetime
+                "data_today": {
+                    "availability": today_product.get("availability"),
+                    "price": today_product.get("price"),
+                    "original_price": today_product.get("original_price"),
+                    "discount": today_product.get("discount"),
+                    "discount_rate": today_product.get("discount_rate"),
+                    "rating_average": today_product.get("rating_average"),
+                    "review_count": today_product.get("review_count"),
+                    "quantity_sold": today_product.get("quantity_sold")
+                },
+                "changes": ["new_product"],
+                "quantity_sold_change": today_product.get("quantity_sold") or 0, # Số lượng bán ra kể từ khi xuất hiện
+                "price_change": today_product.get("price") or 0, # Giá hiện tại của sản phẩm mới
+                "created_at": datetime.now(),
+                "updated_at": datetime.now(),
+                "ecommerce_name": today_product.get("ecommerce_name")
             })
 
-    if diff_operations:
-        await products_diff_collection.bulk_write(diff_operations)
+    if diffs_to_insert:
+        result = await products_diff_collection.insert_many(diffs_to_insert)
+        print(f"Senior Dev Log: Đã chèn {len(result.inserted_ids)} bản ghi diff vào products_daily_diffs.")
 
     print(f"Senior Dev Log: Hoàn thành so sánh dữ liệu sản phẩm ngày {today}.")
