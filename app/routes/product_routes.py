@@ -32,7 +32,7 @@ async def get_best_sellers_yesterday(db: AsyncIOMotorClient = Depends(get_databa
         raise HTTPException(status_code=500, detail=str(e))
     
 @router.get("/best_sellers_yesterday")
-async def get_best_sellers_yesterday_api(db: AsyncIOMotorClient = Depends(get_database), limit: int = 10):
+async def get_best_sellers_yesterday_api(db: AsyncIOMotorClient = Depends(get_database), limit: int = 10, username: str = Depends(get_current_user)):
     """
     API endpoint để lấy danh sách các sản phẩm bán chạy nhất ngày hôm qua.
     """
