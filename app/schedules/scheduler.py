@@ -10,6 +10,7 @@ async def run_crawl_job():
 
 def start_scheduler():
     scheduler.add_job(run_crawl_job, 'cron', hour=17, minute=1)
+    scheduler.add_job(run_crawl_job, 'cron', hour=0, minute=1)
     scheduler.start()
     print("Senior Dev Log: AsyncIOScheduler đã được khởi động.")
 
